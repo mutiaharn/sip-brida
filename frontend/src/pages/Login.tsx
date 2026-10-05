@@ -3,7 +3,11 @@ import { Eye, EyeOff } from "lucide-react";
 
 type RoleType = "verifikator" | "admin";
 
-export default function Login() {
+interface LoginProps {
+  onLoginSuccess?: () => void;
+}
+
+export default function Login({ onLoginSuccess }: LoginProps) {
   const [role, setRole] = useState<RoleType>("verifikator");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -17,6 +21,9 @@ export default function Login() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     console.log("Login data:", { role, username, password, rememberMe });
+    if (onLoginSuccess) {
+      onLoginSuccess();
+    }
   };
 
   return (
@@ -45,7 +52,6 @@ export default function Login() {
               </label>
               
               <div className="grid grid-cols-2 gap-2.5">
-
                 {/* Tombol Verifikator BRIDA */}
                 <button
                   type="button"
@@ -85,7 +91,7 @@ export default function Login() {
                   <div className={`mt-0.5 shrink-0 ${role === "admin" ? "text-white" : "text-slate-400"}`}>
                     <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <circle cx="12" cy="12" r="3"/>
-                      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0 2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
                     </svg>
                   </div>
                   <div>
@@ -171,7 +177,6 @@ export default function Login() {
         </div>
       </section>
 
-
       {/* bagian kanan - GAMBAR */}
       <section className="hidden lg:flex lg:w-1/2 relative rounded-xl xl:rounded-2xl overflow-hidden shadow-sm items-center justify-center p-12 xl:p-16">
         
@@ -193,13 +198,13 @@ export default function Login() {
           <img
             src="/images/logo-brida-white.png"
             alt="Logo BRIDA Kota Makassar"
-            className="h-38 xl:h-40 w-auto object-contain drop-shadow-sm"
+            className="h-10 w-auto object-contain drop-shadow-sm"
           />
         </div>
 
         {/* Blok Teks Utama di Tengah Panel */}
         <div className="relative z-10 w-full max-w-xl">
-          <h2 className="font-poppins text-3xl xl:text-4xl font-extrabold text-white leading-[1.5] tracking-tight">
+          <h2 className="font-poppins text-3xl xl:text-4xl font-extrabold text-white leading-[1.3] tracking-tight">
             Sistem Verifikasi &amp; <br />
             Penilaian Berkas Inovasi
           </h2>
