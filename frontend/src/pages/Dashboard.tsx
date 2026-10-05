@@ -15,6 +15,7 @@ import {
   ChevronRight,
   LogOut,
 } from "lucide-react";
+import UploadPopUp from "../components/UploadPopUp";
 
 interface DocumentItem {
   id: string;
@@ -64,6 +65,7 @@ export default function Dashboard({ onLogout }: DashboardProps) {
   const [activeTab, setActiveTab] = useState<string>("Semua (142)");
   const [activeMenu, setActiveMenu] = useState<string>("Beranda");
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [isUploadOpen, setIsUploadOpen] = useState<boolean>(false);
 
   const tabs = [
     "Semua (142)",
@@ -73,7 +75,7 @@ export default function Dashboard({ onLogout }: DashboardProps) {
   ];
 
   return (
-    <div className="min-h-screen w-full flex bg-[#F4F5F8] text-slate-800 font-sans antialiased">
+    <div className="min-h-screen w-full flex bg-[#F4F5F8] text-slate-800 font-sans antialiased relative">
       {/* 1. SIDEBAR GELAP KIRI (WIDTH: 240px) */}
       <aside className="w-60 min-h-screen bg-[#15121E] text-slate-300 flex flex-col justify-between shrink-0 select-none">
         <div>
@@ -84,7 +86,6 @@ export default function Dashboard({ onLogout }: DashboardProps) {
               alt="Logo BRIDA"
               className="w-10 h-10 object-contain shrink-0"
               onError={(e) => {
-                // Fallback jika nama file gambar logo di public Anda berbeda
                 const target = e.target as HTMLImageElement;
                 if (!target.src.includes("Logo-Dashboard.svg")) {
                   target.src = "/images/Logo-Dashboard.svg";
@@ -222,7 +223,12 @@ export default function Dashboard({ onLogout }: DashboardProps) {
                 />
               </div>
 
-              <button className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#9B1C1C] hover:bg-[#831818] active:bg-[#6c1414] text-white rounded-lg text-xs font-poppins font-bold shadow-sm transition-all">
+              {/* Tombol pemicu modal unggah dokumen */}
+              <button
+                type="button"
+                onClick={() => setIsUploadOpen(true)}
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#9B1C1C] hover:bg-[#831818] active:bg-[#6c1414] text-white rounded-lg text-xs font-poppins font-bold shadow-sm transition-all"
+              >
                 <Plus className="w-4 h-4 stroke-[2.5]" />
                 <span>Unggah Dokumen</span>
               </button>
@@ -406,6 +412,15 @@ export default function Dashboard({ onLogout }: DashboardProps) {
           </div>
         </main>
       </div>
+
+      {/* 5. POPUP UNGGAH DOKUMEN */}
+      <UploadPopUp
+        isOpen={isUploadOpen}
+        onClose={() => setIsUploadOpen(false)}
+        onStartExtraction={() => {
+          alert("Dokumen berhasil dikirim ke pipeline AI/OCR untuk diekstraksi!");
+        }}
+      />
     </div>
   );
 }
