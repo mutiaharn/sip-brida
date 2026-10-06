@@ -1,13 +1,28 @@
-import { useState } from "react";
-import Login from "./pages/Login";
+import React, { useState } from "react";
 import Dashboard from "./pages/Dashboard";
+import Verification from "./pages/Verification";
 
 export default function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [currentView, setCurrentView] = useState<"dashboard" | "review">("dashboard");
+  const [selectedDoc, setSelectedDoc] = useState<any>(null);
 
-  if (!isLoggedIn) {
-    return <Login onLoginSuccess={() => setIsLoggedIn(true)} />;
+  if (currentView === "review") {
+    return (
+      <Verification
+        onBack={() => setCurrentView("dashboard")}
+        documentId={selectedDoc?.id || "INV-2026-001"}
+        documentTitle={`Evaluasi Usulan: ${selectedDoc?.title || "Posyandu Digital Terintegrasi"}`}
+        opdName={selectedDoc?.opd || "Dinas Kesehatan Kota Makassar"}
+      />
+    );
   }
 
-  return <Dashboard onLogout={() => setIsLoggedIn(false)} />;
+  return (
+    <Dashboard
+      onSelectReview={(item: any) => {
+        setSelectedDoc(item);
+        setCurrentView("review");
+      }}
+    />
+  );
 }

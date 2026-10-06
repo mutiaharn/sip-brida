@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import UploadPopUp from "../components/UploadPopUp";
 
-interface DocumentItem {
+export interface DocumentItem {
   id: string;
   date: string;
   title: string;
@@ -29,6 +29,7 @@ interface DocumentItem {
 
 interface DashboardProps {
   onLogout?: () => void;
+  onSelectReview?: (item: DocumentItem) => void;
 }
 
 const documentData: DocumentItem[] = [
@@ -61,7 +62,7 @@ const documentData: DocumentItem[] = [
   },
 ];
 
-export default function Dashboard({ onLogout }: DashboardProps) {
+export default function Dashboard({ onLogout, onSelectReview }: DashboardProps) {
   const [activeTab, setActiveTab] = useState<string>("Semua (142)");
   const [activeMenu, setActiveMenu] = useState<string>("Beranda");
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -375,8 +376,17 @@ export default function Dashboard({ onLogout }: DashboardProps) {
                         </div>
                       </td>
 
+                      {/* Tombol pemicu review berkas */}
                       <td className="py-4 px-6 text-right whitespace-nowrap align-middle">
-                        <button className="px-4 py-2 bg-[#9B1C1C] hover:bg-[#831818] active:bg-[#6c1414] text-white rounded-lg text-xs font-poppins font-bold transition-all shadow-sm">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (onSelectReview) {
+                              onSelectReview(item);
+                            }
+                          }}
+                          className="px-4 py-2 bg-[#9B1C1C] hover:bg-[#831818] active:bg-[#6c1414] text-white rounded-lg text-xs font-poppins font-bold transition-all shadow-sm active:scale-95"
+                        >
                           Review Berkas
                         </button>
                       </td>
