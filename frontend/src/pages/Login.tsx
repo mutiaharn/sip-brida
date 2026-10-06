@@ -29,7 +29,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
   return (
     <main className="min-h-screen w-full flex bg-[#F8FAFC] lg:bg-white text-slate-800 font-sans p-0 lg:p-3 xl:p-4">
       
-      {/* bagian kiri - LOGIN */}
+      {/* Bagian kiri - LOGIN */}
       <section className="w-full lg:w-1/2 flex flex-col justify-center px-8 sm:px-16 md:px-20 lg:px-14 xl:px-24 py-10 bg-white">
         <div className="w-full max-w-[420px] mx-auto">
           
@@ -177,7 +177,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
         </div>
       </section>
 
-      {/* bagian kanan - GAMBAR */}
+      {/* Bagian kanan - GAMBAR */}
       <section className="hidden lg:flex lg:w-1/2 relative rounded-xl xl:rounded-2xl overflow-hidden shadow-sm items-center justify-center p-12 xl:p-16">
         
         {/* Gambar Latar Belakang */}
@@ -194,21 +194,25 @@ export default function Login({ onLoginSuccess }: LoginProps) {
         />
 
         {/* Logo BRIDA Pojok Kanan Atas */}
-        <div className="absolute top-5 right-10 z-10 flex items-center">
+        <div className="absolute top-7 right-8 z-20">
           <img
             src="/images/logo-brida-white.png"
             alt="Logo BRIDA Kota Makassar"
-            className="h-10 w-auto object-contain drop-shadow-sm"
+            className="h-20 xl:h-32 w-auto object-contain drop-shadow-[0_1px_1px_rgba(0,0,0,0.4)]"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.src = "/images/Logo-Dashboard.svg";
+            }}
           />
         </div>
 
         {/* Blok Teks Utama di Tengah Panel */}
         <div className="relative z-10 w-full max-w-xl">
-          <h2 className="font-poppins text-3xl xl:text-4xl font-extrabold text-white leading-[1.3] tracking-tight">
+          <h2 className="font-poppins text-3xl xl:text-4xl font-extrabold text-white leading-[1.3] tracking-tight drop-shadow-md">
             Sistem Verifikasi &amp; <br />
             Penilaian Berkas Inovasi
           </h2>
-          <p className="font-sans text-[13px] xl:text-[14px] text-white/90 mt-5 leading-relaxed font-normal max-w-md">
+          <p className="font-sans text-[13px] xl:text-[14px] text-white/90 mt-5 leading-relaxed font-normal max-w-md drop-shadow-sm">
             Platform internal tim verifikator BRIDA untuk menelaah dokumen naskah dinas daerah berbasis OCR cerdas dan pengesahan berjenjang
           </p>
         </div>
