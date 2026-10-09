@@ -10,7 +10,6 @@ import {
   Sparkles,
   AlertTriangle,
   Check,
-  SlidersHorizontal,
   ChevronLeft,
   ChevronRight,
   LogOut,
@@ -22,7 +21,11 @@ export interface DocumentItem {
   date: string;
   title: string;
   opd: string;
-  attachmentCount: number;
+  picName: string;
+  picPhone: string;
+  temporaryPoints: number;
+  evidenceFilled: number;
+  totalEvidence: number;
   ocrStatus: "Tanda Tangan Sah" | "Stempel Kurang Jelas";
   accuracy: number;
 }
@@ -36,72 +39,85 @@ const documentData: DocumentItem[] = [
   {
     id: "INV-2026-001",
     date: "28 Sep 2026",
-    title: "Digitalisasi Pelayanan Posyandu Pintar Terpadu",
-    opd: "Dinas Kesehatan Kota Makassar",
-    attachmentCount: 4,
+    title: "PLATONIK: Literasi Terpadu & Integrasi Karakter",
+    opd: "Dinas Pendidikan Kota Makassar",
+    picName: "Dr. Sarwinah S.Pd., M.Pd",
+    picPhone: "08124486746",
+    temporaryPoints: 84.0,
+    evidenceFilled: 17,
+    totalEvidence: 20,
     ocrStatus: "Tanda Tangan Sah",
-    accuracy: 94.2,
+    accuracy: 96.2,
   },
   {
     id: "INV-2026-002",
     date: "29 Sep 2026",
-    title: "Sistem Monitoring Titik Genangan Air & Drainase",
-    opd: "Dinas Pekerjaan Umum Kota Makassar",
-    attachmentCount: 3,
+    title: "Digitalisasi Posyandu Pintar Terpadu",
+    opd: "Dinas Kesehatan Kota Makassar",
+    picName: "Mulyadi",
+    picPhone: "082189271789",
+    temporaryPoints: 18.0,
+    evidenceFilled: 3,
+    totalEvidence: 20,
     ocrStatus: "Stempel Kurang Jelas",
     accuracy: 68.0,
   },
   {
     id: "INV-2026-003",
     date: "30 Sep 2026",
-    title: "Portal Administrasi Kependudukan Lorong Wisata",
-    opd: "Dinas Kependudukan & Catatan Sipil",
-    attachmentCount: 5,
+    title: "Sistem Monitoring Genangan Air & Drainase",
+    opd: "Dinas Pekerjaan Umum Kota Makassar",
+    picName: "Ahmad, S.T.",
+    picPhone: "082296562847",
+    temporaryPoints: 43.0,
+    evidenceFilled: 10,
+    totalEvidence: 20,
     ocrStatus: "Tanda Tangan Sah",
     accuracy: 91.5,
   },
 ];
 
 export default function Dashboard({ onLogout, onSelectReview }: DashboardProps) {
-  const [activeTab, setActiveTab] = useState<string>("Semua (142)");
+  const [activeTab, setActiveTab] = useState<string>("Semua Usulan (142)");
   const [activeMenu, setActiveMenu] = useState<string>("Beranda");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isUploadOpen, setIsUploadOpen] = useState<boolean>(false);
 
   const tabs = [
-    "Semua (142)",
+    "Semua Usulan (142)",
     "Menunggu Review (20)",
-    "Perlu Dokumen Tambahan (142)",
-    "Selesai (20)",
+    "Perlu Perbaikan (14)",
+    "Terverifikasi (108)",
   ];
 
   return (
     <div className="min-h-screen w-full flex bg-[#F4F5F8] text-slate-800 font-sans antialiased relative">
-      {/* 1. SIDEBAR GELAP KIRI (WIDTH: 240px) */}
+      {/* 1. SIDEBAR */}
       <aside className="w-60 min-h-screen bg-[#15121E] text-slate-300 flex flex-col justify-between shrink-0 select-none">
         <div>
-          {/* Header Brand SIDARA */}
-          <div className="flex items-center gap-3 px-6 pt-6 pb-8">
-            <img
-              src="/images/Logo-Dashboard.svg"
-              alt="Logo BRIDA"
-              className="w-10 h-10 object-contain shrink-0"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                if (!target.src.includes("Logo-Dashboard.svg")) {
-                  target.src = "/images/Logo-Dashboard.svg";
-                }
-              }}
-            />
-            <div>
-              <h1 className="font-poppins font-black text-sm text-white tracking-wide leading-tight">
-                SIDARA
-              </h1>
-              <p className="text-[8px] text-slate-400 font-normal leading-tight mt-0.5">
-                Sistem Dashboard Analisis dan <br /> Penilaian Inovasi BRIDA
-              </p>
-            </div>
-          </div>
+
+      {/* Header Brand SIDARA */}
+        <div className="flex items-center gap-3 px-6 pt-6 pb-8">
+          <img
+            src="/images/Logo-Dashboard.svg"
+            alt="Logo SIDARA"
+            className="w-10 h-10 object-contain shrink-0"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              if (!target.src.includes("Logo-Dashboard.svg")) {
+              target.src = "/images/Logo-Dashboard.svg";
+            }
+          }}
+        />
+        <div>
+          <h1 className="font-poppins font-black text-sm text-white tracking-wider leading-tight">
+            SIDARA
+          </h1>
+          <p className="text-[8px] text-slate-400 font-normal leading-tight mt-0.5">
+            Sistem Dashboard Analisis dan <br /> Penilaian Inovasi BRIDA
+          </p>
+        </div>
+      </div>
 
           {/* Navigasi Menu */}
           <nav className="space-y-1">
@@ -162,10 +178,10 @@ export default function Dashboard({ onLogout, onSelectReview }: DashboardProps) 
           </nav>
         </div>
 
-        {/* Profil Bawah Sidebar */}
-        <div 
+        {/* Profil Verifikator Bawah */}
+        <div
           onClick={onLogout}
-          className="p-4 m-3 bg-[#201B2B] rounded-xl flex items-center justify-between border border-white/5 cursor-pointer hover:bg-white/10 transition-colors"
+          className="p-3.5 m-3 bg-[#201B2B] rounded-xl flex items-center justify-between border border-white/5 cursor-pointer hover:bg-white/10 transition-colors"
           title="Klik untuk Keluar"
         >
           <div className="flex items-center gap-3 overflow-hidden">
@@ -193,14 +209,15 @@ export default function Dashboard({ onLogout, onSelectReview }: DashboardProps) 
           </h2>
 
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#ECFDF5] border border-[#A7F3D0] rounded-full">
-            <span className="w-2 h-2 rounded-full bg-[#10B981]"></span>
+            <span className="w-2 h-2 rounded-full bg-[#10B981]" />
             <span className="font-sans text-[11px] font-semibold text-[#065F46]">
               Verifikator Aktif
             </span>
           </div>
         </header>
 
-        <main className="p-8 space-y-6 max-w-[1400px]">
+        <main className="p-8 space-y-6 max-w-[1500px]">
+
           {/* Sapaan + Search + Tombol Unggah */}
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div>
@@ -224,7 +241,6 @@ export default function Dashboard({ onLogout, onSelectReview }: DashboardProps) 
                 />
               </div>
 
-              {/* Tombol pemicu modal unggah dokumen */}
               <button
                 type="button"
                 onClick={() => setIsUploadOpen(true)}
@@ -236,7 +252,7 @@ export default function Dashboard({ onLogout, onSelectReview }: DashboardProps) 
             </div>
           </div>
 
-          {/* 3. EMPAT KARTU METRIK RINGKASAN */}
+          {/* 3. EMPAT KARTU RINGKASAN */}
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
             <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-[0_2px_8px_rgba(0,0,0,0.02)] flex items-center gap-4">
               <div className="w-12 h-12 rounded-2xl bg-[#FEE2E2] flex items-center justify-center shrink-0">
@@ -279,8 +295,10 @@ export default function Dashboard({ onLogout, onSelectReview }: DashboardProps) 
             </div>
           </div>
 
-          {/* 4. TABEL ANTREAN DATA */}
+          {/* 4. TABEL ANTREAN DATA HYBRID (BARU & BERSIH) */}
           <div className="bg-white rounded-2xl border border-slate-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.02)] overflow-hidden">
+            
+            {/* Header Tabs Status */}
             <div className="px-6 border-b border-slate-200/80 flex items-center justify-between">
               <div className="flex items-center gap-8">
                 {tabs.map((tab) => (
@@ -300,83 +318,117 @@ export default function Dashboard({ onLogout, onSelectReview }: DashboardProps) 
                   </button>
                 ))}
               </div>
-
-              <button
-                title="Filter Pengaturan"
-                className="p-2 text-slate-400 hover:text-slate-700 transition-colors"
-              >
-                <SlidersHorizontal className="w-4 h-4" />
-              </button>
             </div>
 
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-slate-100 text-[10px] font-poppins font-bold text-slate-400 uppercase tracking-wider">
-                    <th className="py-4 px-6">ID &amp; Tanggal</th>
                     <th className="py-4 px-6">Judul Proposal &amp; Asal OPD</th>
-                    <th className="py-4 px-6">Hasil Analisis OCR</th>
-                    <th className="py-4 px-6">Akurasi AI</th>
-                    <th className="py-4 px-6 text-right">Tindakan</th>
+                    <th className="py-4 px-6">Operator (PIC)</th>
+                    <th className="py-4 px-6">Poin Sementara</th>
+                    <th className="py-4 px-6">Status 20 Evidence</th>
+                    <th className="py-4 px-6">Hasil OCR</th>
+                    <th className="py-4 px-6 text-left">Tindakan</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-xs font-sans">
                   {documentData.map((item) => (
                     <tr
                       key={item.id}
-                      className="hover:bg-slate-50/50 transition-colors"
+                      className="hover:bg-slate-50/60 transition-colors"
                     >
-                      <td className="py-4 px-6 whitespace-nowrap align-middle">
-                        <span className="inline-block px-2.5 py-0.5 bg-[#FEF2F2] border border-[#FEE2E2] text-[#A61F1B] font-mono text-[10px] font-bold rounded">
-                          {item.id}
-                        </span>
-                        <p className="text-[11px] text-slate-400 mt-1">{item.date}</p>
-                      </td>
-
-                      <td className="py-4 px-6 max-w-md align-middle">
+                      {/* 1. Judul & OPD */}
+                      <td className="py-4 px-6 max-w-sm align-middle">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="inline-block px-2 py-0.5 bg-[#FEF2F2] border border-[#FEE2E2] text-[#9B1C1C] font-mono text-[9.5px] font-bold rounded">
+                            {item.id}
+                          </span>
+                          <span className="text-[11px] text-slate-400 font-sans">
+                            • {item.date}
+                          </span>
+                        </div>
                         <p className="font-poppins font-bold text-slate-900 leading-snug">
                           {item.title}
                         </p>
                         <p className="text-[11px] text-slate-500 mt-0.5">
-                          {item.opd} • {item.attachmentCount} Lampiran
+                          {item.opd}
                         </p>
                       </td>
 
+                      {/* 2. Operator (PIC) */}
                       <td className="py-4 px-6 whitespace-nowrap align-middle">
-                        {item.ocrStatus === "Tanda Tangan Sah" ? (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[11px] font-poppins font-semibold bg-[#ECFDF5] border border-[#A7F3D0] text-[#059669]">
-                            <Check className="w-3.5 h-3.5 stroke-[2.5]" />
-                            <span>Tanda Tangan Sah</span>
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[11px] font-poppins font-semibold bg-[#FFFBEB] border border-[#FDE68A] text-[#D97706]">
-                            <AlertTriangle className="w-3.5 h-3.5 stroke-[2]" />
-                            <span>Stempel Kurang Jelas</span>
-                          </span>
-                        )}
+                        <p className="font-poppins font-semibold text-slate-800 text-[11px]">
+                          {item.picName}
+                        </p>
+                        <p className="font-mono text-[10px] text-slate-400 mt-0.5">
+                          {item.picPhone}
+                        </p>
                       </td>
 
+                      {/* 3. Poin Sementara (Badge Kuning-Emas) */}
                       <td className="py-4 px-6 whitespace-nowrap align-middle">
-                        <div className="w-28">
-                          <span
-                            className={`font-poppins text-xs font-bold ${
-                              item.accuracy >= 80 ? "text-[#059669]" : "text-[#D97706]"
-                            }`}
-                          >
-                            {item.accuracy}%
-                          </span>
-                          <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden mt-1.5">
-                            <div
-                              className={`h-full rounded-full ${
-                                item.accuracy >= 80 ? "bg-[#10B981]" : "bg-[#F59E0B]"
-                              }`}
-                              style={{ width: `${item.accuracy}%` }}
-                            />
-                          </div>
+                        <div className="inline-block px-3 py-1 rounded-lg bg-[#FFFBEB] border border-[#FDE68A] text-center">
+                          <p className="font-poppins font-bold text-xs text-[#B45309] leading-tight">
+                            {item.temporaryPoints.toFixed(2)}
+                          </p>
+                          <p className="font-sans font-bold text-[7.5px] text-[#92400E] uppercase tracking-wider">
+                            Estimasi Poin
+                          </p>
                         </div>
                       </td>
 
-                      {/* Tombol pemicu review berkas */}
+                      {/* 4. Status 20 Evidence */}
+                      <td className="py-4 px-6 whitespace-nowrap align-middle">
+                        <p
+                          className={`font-poppins font-bold text-[11px] ${
+                            item.evidenceFilled >= 15
+                              ? "text-emerald-700"
+                              : item.evidenceFilled >= 8
+                              ? "text-emerald-600"
+                              : "text-amber-600"
+                          }`}
+                        >
+                          {item.evidenceFilled} / {item.totalEvidence} Terisi
+                        </p>
+                        <div className="w-24 h-1.5 bg-slate-100 rounded-full overflow-hidden mt-1.5">
+                          <div
+                            className={`h-full rounded-full ${
+                              item.evidenceFilled >= 15
+                                ? "bg-[#10B981]"
+                                : item.evidenceFilled >= 8
+                                ? "bg-[#10B981]"
+                                : "bg-[#F59E0B]"
+                            }`}
+                            style={{
+                              width: `${(item.evidenceFilled / item.totalEvidence) * 100}%`,
+                            }}
+                          />
+                        </div>
+                      </td>
+
+                      {/* 5. Hasil Analisis OCR */}
+                      <td className="py-4 px-6 whitespace-nowrap align-middle">
+                        {item.ocrStatus === "Tanda Tangan Sah" ? (
+                          <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-poppins font-semibold bg-[#ECFDF5] border border-[#A7F3D0] text-[#065F46]">
+                            <Check className="w-3 h-3 stroke-[3]" />
+                            <span>Tanda Tangan Sah</span>
+                          </div>
+                        ) : (
+                          <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-poppins font-semibold bg-[#FFFBEB] border border-[#FDE68A] text-[#B45309]">
+                            <AlertTriangle className="w-3 h-3 stroke-[2.5]" />
+                            <span>Stempel Kurang Jelas</span>
+                          </div>
+                        )}
+                        <p className="text-[10px] text-slate-400 mt-1 font-sans">
+                          Akurasi AI:{" "}
+                          <span className="font-bold text-slate-700 font-mono">
+                            {item.accuracy}%
+                          </span>
+                        </p>
+                      </td>
+
+                      {/* 6. Tombol Review Berkas */}
                       <td className="py-4 px-6 text-right whitespace-nowrap align-middle">
                         <button
                           type="button"
@@ -396,6 +448,7 @@ export default function Dashboard({ onLogout, onSelectReview }: DashboardProps) 
               </table>
             </div>
 
+            {/* Pagination Bawah */}
             <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between">
               <p className="text-[11px] text-slate-500">
                 Menampilkan 1–3 dari 142 total berkas inovasi daerah

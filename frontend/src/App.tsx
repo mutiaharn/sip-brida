@@ -1,11 +1,22 @@
 import React, { useState } from "react";
+import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Verification from "./pages/Verification";
 
 export default function App() {
-  const [currentView, setCurrentView] = useState<"dashboard" | "review">("dashboard");
+  const [currentView, setCurrentView] = useState<"login" | "dashboard" | "review">("login");
   const [selectedDoc, setSelectedDoc] = useState<any>(null);
 
+  // Tampilan Login
+  if (currentView === "login") {
+    return (
+      <Login 
+        onLoginSuccess={() => setCurrentView("dashboard")} 
+      />
+    );
+  }
+
+  // Tampilan Review Verifikasi
   if (currentView === "review") {
     return (
       <Verification
@@ -17,8 +28,10 @@ export default function App() {
     );
   }
 
+  // Tampilan Dashboard (Utama)
   return (
     <Dashboard
+      onLogout={() => setCurrentView("login")}
       onSelectReview={(item: any) => {
         setSelectedDoc(item);
         setCurrentView("review");
