@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Verification from "./pages/Verification";

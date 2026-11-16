@@ -1,10 +1,13 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import (
     Column, Integer, String, Text, Boolean, Float, 
     DateTime, ForeignKey, JSON
 )
 from sqlalchemy.orm import relationship
 from app.database.connection import Base
+
+def utc_now():
+    return datetime.now(timezone.utc)
 
 class Document(Base):
     __tablename__ = "documents"
@@ -18,8 +21,8 @@ class Document(Base):
     is_scanned = Column(Boolean, default=False)
     status = Column(String(32), default="pending")  # pending, processing, completed, failed
     needs_manual_review = Column(Boolean, default=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=utc_now)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
 
     # Relationship
     extractions = relationship("DocumentExtraction", back_populates="document", cascade="all, delete-orphan")
@@ -41,7 +44,7 @@ class DocumentExtraction(Base):
     verification_url = Column(Text, nullable=True)
     confidence_score = Column(Float, default=0.0)
     raw_json = Column(JSON, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=utc_now)
 
     document = relationship("Document", back_populates="extractions")
 
@@ -55,4 +58,4 @@ class EvaluationRun(Base):
     accuracy_overall = Column(Float, default=0.0)
     field_accuracies = Column(JSON, nullable=True)
     metrics_detail = Column(JSON, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=utc_now)

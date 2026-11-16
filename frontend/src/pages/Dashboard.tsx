@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   LayoutGrid,
   Inbox,
@@ -15,6 +15,7 @@ import {
   LogOut,
 } from "lucide-react";
 import UploadPopUp from "../components/UploadPopUp";
+import { fetchInnovations } from "../services/api";
 
 export interface DocumentItem {
   id: string;
@@ -82,6 +83,42 @@ export default function Dashboard({ onLogout, onSelectReview }: DashboardProps) 
   const [activeMenu, setActiveMenu] = useState<string>("Beranda");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isUploadOpen, setIsUploadOpen] = useState<boolean>(false);
+  const [documents, setDocuments] = useState<DocumentItem[]>(documentData);
+
+  const loadData = () => {
+    fetchInnovations()
+      .then((data) => {
+        if (data && data.length > 0) {
+          const mapped: DocumentItem[] = data.map((d) => ({
+            id: d.id,
+            date: d.created_at
+              ? new Date(d.created_at).toLocaleDateString("id-ID", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                })
+              : "Nov 2026",
+            title: d.title,
+            opd: d.opd,
+            picName: d.picName,
+            picPhone: d.picPhone,
+            temporaryPoints: d.temporaryPoints,
+            evidenceFilled: d.evidenceFilled,
+            totalEvidence: d.totalEvidence,
+            ocrStatus: d.ocrStatus,
+            accuracy: d.accuracy,
+          }));
+          setDocuments(mapped);
+        }
+      })
+      .catch((err) => {
+        console.warn("Gagal memuat inovasi dari backend:", err);
+      });
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
 
   const tabs = [
     "Semua Usulan (142)",
@@ -333,7 +370,14 @@ export default function Dashboard({ onLogout, onSelectReview }: DashboardProps) 
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-xs font-sans">
-                  {documentData.map((item) => (
+                  {documents
+                    .filter((item) =>
+                      searchQuery
+                        ? item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          item.opd.toLowerCase().includes(searchQuery.toLowerCase())
+                        : true
+                    )
+                    .map((item) => (
                     <tr
                       key={item.id}
                       className="hover:bg-slate-50/60 transition-colors"
@@ -481,7 +525,7 @@ export default function Dashboard({ onLogout, onSelectReview }: DashboardProps) 
         isOpen={isUploadOpen}
         onClose={() => setIsUploadOpen(false)}
         onStartExtraction={() => {
-          alert("Dokumen berhasil dikirim ke pipeline AI/OCR untuk diekstraksi!");
+          loadData();
         }}
       />
     </div>

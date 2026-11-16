@@ -14,7 +14,7 @@ Prinsip yang dipegang (lihat docs/DATA_MODEL.md):
      data/reference/indikator_2026.json lewat tabel reference_indicators.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import (
     Boolean,
@@ -33,6 +33,10 @@ from sqlalchemy.orm import relationship
 from app.database.connection import Base
 
 
+def utc_now():
+    return datetime.now(timezone.utc)
+
+
 class User(Base):
     """Akun pengguna sistem (Admin / Verifikator BRIDA)."""
 
@@ -45,7 +49,7 @@ class User(Base):
     role = Column(String(32), nullable=False, default="verifikator")  # admin | verifikator
     opd = Column(String(160), nullable=True)
     aktif = Column(Boolean, default=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=utc_now)
 
     decisions = relationship("HumanDecision", back_populates="decided_by_user")
 
@@ -105,8 +109,8 @@ class Innovation(Base):
     skor_total = Column(Float, nullable=True)
     skor_maksimum = Column(Float, nullable=True)
 
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=utc_now)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
 
     # Pengesahan final (UC-06): jejak audit tidak boleh hilang
     verified_at = Column(DateTime, nullable=True)
@@ -169,7 +173,7 @@ class Evidence(Base):
     page_end = Column(Integer, nullable=True)
     verification_url = Column(Text, nullable=True)
     catatan = Column(Text, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=utc_now)
 
     innovation = relationship("Innovation", back_populates="evidences")
 
@@ -198,7 +202,7 @@ class ParameterAssessment(Base):
     status = Column(String(32), default="OK")  # OK | EVALUASI_AI_GAGAL
     engine = Column(String(48), nullable=True)  # gemini_flash | rule_based | manual
     attempt_count = Column(Integer, default=1)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=utc_now)
 
     innovation_indicator = relationship("InnovationIndicator", back_populates="assessments")
 
@@ -227,7 +231,7 @@ class HumanDecision(Base):
 
     decided_by_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     decided_by_nama = Column(String(128), nullable=True)
-    decided_at = Column(DateTime, default=datetime.utcnow)
+    decided_at = Column(DateTime, default=utc_now)
 
     innovation_indicator = relationship("InnovationIndicator", back_populates="decisions")
     decided_by_user = relationship("User", back_populates="decisions")
@@ -245,4 +249,4 @@ class AuditLog(Base):
     entity = Column(String(64), nullable=False)  # innovation_indicator | human_decision | ...
     entity_id = Column(String(64), nullable=True)
     payload = Column(JSON, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+    created_at = Column(DateTime, default=utc_now, index=True)

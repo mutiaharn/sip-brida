@@ -1,5 +1,13 @@
-import React, { useState } from "react";
-import { ArrowLeft, Check } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ArrowLeft, Check, Loader2 } from "lucide-react";
+import {
+  fetchInnovationDetail,
+  saveParameterDecision,
+} from "../services/api";
+import type {
+  IndicatorDetailItem,
+  InnovationDetailResponse,
+} from "../services/api";
 
 export interface VerificationProps {
   onBack: () => void;
@@ -8,40 +16,15 @@ export interface VerificationProps {
   opdName?: string;
 }
 
-export interface IndicatorItem {
-  id: number;
-  title: string;
-  sub: string;
-  points: number;
-  status: "active" | "verified" | "pending";
-}
-
-const initialIndicators: IndicatorItem[] = [
-  { id: 1, title: "1. Regulasi Inovasi Daerah", sub: "SK Kepala Daerah / Perwali", points: 3.0, status: "active" },
-  { id: 2, title: "2. Ketersediaan dan peran SDM", sub: "SK Tim Pengelola Inovasi", points: 3.0, status: "verified" },
-  { id: 3, title: "3. Dukungan Anggaran", sub: "Dokumen DPA / RKA Anggaran", points: 3.0, status: "verified" },
-  { id: 4, title: "4. Wahana Inovasi", sub: "Bimtek / Pelatihan Pengelola", points: 0.0, status: "pending" },
-  { id: 5, title: "5. Rancang Bangun Inovasi Daerah", sub: "Pokok Perubahan & Narasi", points: 0.0, status: "pending" },
-  { id: 6, title: "6. Pedoman Teknis / Juknis", sub: "Buku Panduan / SOP Layanan", points: 0.0, status: "pending" },
-  { id: 7, title: "7. Penggunaan Sumber Daya Inovasi", sub: "Pemanfaatan Sarana Prasarana", points: 0.0, status: "pending" },
-  { id: 8, title: "8. Sosialisasi Inovasi Daerah", sub: "Dokumentasi Publikasi Media", points: 0.0, status: "pending" },
-  { id: 9, title: "9. Keterlibatan Aktor Inovasi", sub: "Kolaborasi Pemangku Kepentingan", points: 0.0, status: "pending" },
-  { id: 10, title: "10. Kemudahan Informasi Layanan", sub: "Kanal Informasi Publik", points: 0.0, status: "pending" },
-  { id: 11, title: "11. Penyelesaian Layanan Pengaduan", sub: "Kanal SP4N / Media Aduan", points: 0.0, status: "pending" },
-  { id: 12, title: "12. Kemudahan Proses Inovasi", sub: "Efisiensi SOP & Alur Layanan", points: 0.0, status: "pending" },
-  { id: 13, title: "13. Kepuasan Pengguna", sub: "Survei SKM Penerima Layanan", points: 0.0, status: "pending" },
-  { id: 14, title: "14. Sistem Monev Internal", sub: "Laporan Evaluasi Rutin OPD", points: 0.0, status: "pending" },
-  { id: 15, title: "15. Kecepatan Penciptaan Inovasi", sub: "Linimasa Rancang Bangun", points: 0.0, status: "pending" },
-  { id: 16, title: "16. Kemanfaatan Inovasi Daerah", sub: "Data Penerima Manfaat Nyata", points: 0.0, status: "pending" },
-  { id: 17, title: "17. Replikasi Inovasi Daerah", sub: "Adopsi Unit Kerja / Daerah Lain", points: 0.0, status: "pending" },
-  { id: 18, title: "18. Aksesibilitas Kelompok Rentan", sub: "Fasilitas Ramah Disabilitas", points: 0.0, status: "pending" },
-  { id: 19, title: "19. Integrasi Program Inovasi", sub: "Keterpaduan Sistem SPBE", points: 0.0, status: "pending" },
-  { id: 20, title: "20. Kualitas Hasil Inovasi Daerah", sub: "Capaian Indikator Kinerja Utama", points: 3.0, status: "verified" },
-];
-
 /* TAB 1: PROFIL & RANCANG BANGUN */
 /* ============================== */
-function ProfileTabContent({ onGoToIndicators }: { onGoToIndicators: () => void }) {
+function ProfileTabContent({
+  innovation,
+  onGoToIndicators,
+}: {
+  innovation?: InnovationDetailResponse | null;
+  onGoToIndicators: () => void;
+}) {
   const [profileDecision, setProfileDecision] = useState<"layak" | "revisi" | "tolak">("layak");
   const [profileNote, setProfileNote] = useState<string>(
     "Substansi rancang bangun dan pokok perubahan telah memenuhi kriteria kebaruan. Silakan lanjutkan verifikasi kelengkapan naskah dinas."
@@ -49,7 +32,6 @@ function ProfileTabContent({ onGoToIndicators }: { onGoToIndicators: () => void 
 
   return (
     <div className="grid grid-cols-12 gap-5 items-start">
-
       {/* Kolom Kiri: Narasi Proposal */}
       <div className="col-span-12 lg:col-span-8 bg-white rounded-2xl border border-slate-200 shadow-xs p-6 space-y-6">
         <div>
@@ -66,13 +48,13 @@ function ProfileTabContent({ onGoToIndicators }: { onGoToIndicators: () => void 
             <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl">
               <p className="text-[10px] font-sans text-slate-500 font-medium">Bentuk Inovasi</p>
               <p className="font-poppins font-bold text-xs text-slate-800 mt-1">
-                Inovasi Pelayanan Publik
+                {innovation?.type || "Inovasi Pelayanan Publik"}
               </p>
             </div>
             <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl">
               <p className="text-[10px] font-sans text-slate-500 font-medium">Waktu Penerapan Resmi</p>
               <p className="font-poppins font-bold text-xs text-slate-800 mt-1">
-                01 Jan 2025 s.d. Sekarang
+                Tahun {innovation?.year || 2026}
               </p>
             </div>
           </div>
@@ -85,18 +67,11 @@ function ProfileTabContent({ onGoToIndicators }: { onGoToIndicators: () => void 
           <div className="mt-3.5 p-4 bg-slate-50 border border-slate-200/80 rounded-xl space-y-3 text-xs leading-relaxed font-sans text-slate-700">
             <div>
               <h4 className="font-poppins font-bold text-slate-900 mb-0.5">
-                1. Latar Belakang &amp; Analisis Kebutuhan:
+                Deskripsi Substansi Inovasi:
               </h4>
               <p className="text-slate-600">
-                Rendahnya indeks literasi membaca peserta didik sekolah dasar di kawasan pesisir dan lorong padat Kota Makassar menjadi dasar perancangan program.
-              </p>
-            </div>
-            <div>
-              <h4 className="font-poppins font-bold text-slate-900 mb-0.5">
-                2. Pokok Perubahan (Kebaruan Sistem):
-              </h4>
-              <p className="text-slate-600">
-                PLATONIK memadukan bahan ajar kurikulum merdeka dengan pendampingan langsung di lorong wisata dan pelacakan perkembangan minat baca siswa.
+                {innovation?.description ||
+                  "Program inovasi daerah yang memadukan peningkatan kualitas tata kelola dengan layanan publik terintegrasi di Kota Makassar."}
               </p>
             </div>
           </div>
@@ -107,8 +82,8 @@ function ProfileTabContent({ onGoToIndicators }: { onGoToIndicators: () => void 
             C. Dampak &amp; Kemanfaatan Nyata
           </h3>
           <div className="mt-3.5 p-4 bg-slate-50 border border-slate-200/80 rounded-xl text-xs space-y-1.5 font-sans text-slate-700">
-            <p>• Peningkatan skor capaian literasi dan numerasi sebesar 28,4% pada sekolah dasar piloting.</p>
-            <p>• Terdistribusinya 1.500 modul baca inklusif dan ruang baca terbuka ramah anak pada 15 kecamatan.</p>
+            <p>• Peningkatan efisiensi waktu layanan dan keterpaduan data instansi.</p>
+            <p>• Terverifikasi dalam sistem Indeks Inovasi Daerah (IID) BRIDA Kota Makassar.</p>
           </div>
         </div>
 
@@ -120,13 +95,13 @@ function ProfileTabContent({ onGoToIndicators }: { onGoToIndicators: () => void 
             <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl">
               <p className="text-[10px] font-sans text-slate-500 font-medium">Alokasi DPA APBD</p>
               <p className="font-poppins font-bold text-xs text-slate-800 mt-1">
-                Rp 185.000.000 (T.A. 2026)
+                Terlampir pada Bukti Dukung (IND-03)
               </p>
             </div>
             <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl">
               <p className="text-[10px] font-sans text-slate-500 font-medium">Legalitas Tim Pelaksana</p>
               <p className="font-poppins font-bold text-xs text-slate-800 mt-1">
-                SK Kadisdik No. 800/142/Disdik/2026
+                SK Penetapan Tim (IND-02)
               </p>
             </div>
           </div>
@@ -148,9 +123,9 @@ function ProfileTabContent({ onGoToIndicators }: { onGoToIndicators: () => void 
           <p className="font-poppins font-bold text-slate-800 mb-1">
             AI Check: Substansi &amp; Syarat Narasi
           </p>
-          <p className="text-emerald-700 font-medium">✓ Panjang narasi: 420 kata (Memenuhi syarat min. 300 kata)</p>
-          <p className="text-emerald-700 font-medium">✓ 5 Unsur rancang bangun terdeteksi lengkap</p>
-          <p className="text-emerald-700 font-medium">✓ Nilai orisinalitas ide: 92% (Tingkat kebaruan tinggi)</p>
+          <p className="text-emerald-700 font-medium">✓ Narasi proposal memenuhi kriteria awal</p>
+          <p className="text-emerald-700 font-medium">✓ Unsur rancang bangun terdeteksi lengkap</p>
+          <p className="text-emerald-700 font-medium">✓ Memenuhi syarat evaluasi 19 indikator aktif</p>
         </div>
 
         <div>
@@ -211,7 +186,7 @@ function ProfileTabContent({ onGoToIndicators }: { onGoToIndicators: () => void 
             Langkah Selanjutnya:
           </p>
           <p className="font-sans text-[11px] text-[#78350F] leading-relaxed">
-            Verifikasi keabsahan naskah SK, SOP, DPA anggaran, dan video dokumentasi (20 Indikator) melalui viewer AI OCR.
+            Verifikasi keabsahan naskah SK, SOP, DPA anggaran, dan bukti dukung (20 Indikator) melalui sistem evaluasi AI OCR.
           </p>
           <button
             type="button"
@@ -226,56 +201,96 @@ function ProfileTabContent({ onGoToIndicators }: { onGoToIndicators: () => void 
   );
 }
 
-/* TAB 2: EVALUASI 20 INDIKATOR  */
+/* TAB 2: EVALUASI 20 INDIKATOR */
 /* ============================= */
 function IndicatorsTabContent({
+  documentId,
   indicators,
   onUpdateIndicators,
 }: {
-  indicators: IndicatorItem[];
-  onUpdateIndicators: (updated: IndicatorItem[]) => void;
+  documentId: string;
+  indicators: IndicatorDetailItem[];
+  onUpdateIndicators: (updated: IndicatorDetailItem[]) => void;
 }) {
   const [activeIndicatorId, setActiveIndicatorId] = useState<number>(1);
-  const [decisions, setDecisions] = useState<{ [paramId: number]: "lolos" | "revisi" | "tolak" }>({
-    1: "revisi",
-    2: "tolak",
-    3: "lolos",
-  });
+  const [decisions, setDecisions] = useState<{ [paramId: string]: "lolos" | "revisi" | "tolak" }>({});
   const [reviewerNote, setReviewerNote] = useState<string>("");
+  const [isSaving, setIsSaving] = useState(false);
+
+  const currentIndicator =
+    indicators.find((item) => item.id === activeIndicatorId) || indicators[0];
 
   const handleSelectIndicator = (id: number) => {
     setActiveIndicatorId(id);
-    onUpdateIndicators(
-      indicators.map((item) => {
-        if (item.id === id) {
-          return { ...item, status: item.status === "verified" ? "verified" : "active" };
-        }
-        if (item.status === "active") {
-          return { ...item, status: "pending" };
-        }
-        return item;
-      })
-    );
-  };
-
-  const handleSaveAndNext = () => {
-    onUpdateIndicators(
-      indicators.map((item) =>
-        item.id === activeIndicatorId ? { ...item, status: "verified" } : item
-      )
-    );
-    if (activeIndicatorId < 20) {
-      handleSelectIndicator(activeIndicatorId + 1);
-    } else {
-      alert("Seluruh 20 indikator telah selesai ditelaah!");
+    const selected = indicators.find((item) => item.id === id);
+    if (selected) {
+      setReviewerNote(selected.reviewer_note || "");
     }
   };
 
-  const currentIndicator = indicators.find((item) => item.id === activeIndicatorId) || indicators[0];
+  const handleSelectDecision = async (paramId: string, opt: "lolos" | "revisi" | "tolak") => {
+    setDecisions((prev) => ({ ...prev, [paramId]: opt }));
+
+    // Simpan otomatis ke backend
+    if (currentIndicator) {
+      try {
+        await saveParameterDecision(
+          documentId,
+          currentIndicator.indicator_id,
+          paramId,
+          opt.toUpperCase() as "LOLOS" | "REVISI" | "TOLAK",
+          reviewerNote
+        );
+      } catch (err) {
+        console.warn("Auto-save keputusan:", err);
+      }
+    }
+  };
+
+  const handleSaveAndNext = async () => {
+    setIsSaving(true);
+    try {
+      // Simpan semua parameter yang sudah dipilih keputusannya
+      if (currentIndicator && currentIndicator.parameters) {
+        for (const p of currentIndicator.parameters) {
+          const dec = decisions[p.id];
+          if (dec) {
+            await saveParameterDecision(
+              documentId,
+              currentIndicator.indicator_id,
+              p.id,
+              dec.toUpperCase() as "LOLOS" | "REVISI" | "TOLAK",
+              reviewerNote
+            );
+          }
+        }
+      }
+
+      // Perbarui status indikator jadi verified
+      onUpdateIndicators(
+        indicators.map((item) =>
+          item.id === activeIndicatorId
+            ? { ...item, status: "verified", reviewer_note: reviewerNote }
+            : item
+        )
+      );
+
+      if (activeIndicatorId < indicators.length) {
+        handleSelectIndicator(activeIndicatorId + 1);
+      } else {
+        alert("Seluruh 20 indikator telah selesai ditelaah!");
+      }
+    } catch (err: any) {
+      alert("Gagal menyimpan telaah: " + err.message);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const verifiedCount = indicators.filter((i) => i.status === "verified").length;
 
   return (
     <div className="grid grid-cols-12 gap-5 items-start">
-
       {/* KOLOM 1: DAFTAR 20 INDIKATOR */}
       <div className="col-span-12 lg:col-span-3 bg-white rounded-2xl border border-slate-200 shadow-xs p-4 flex flex-col max-h-[calc(100vh-140px)] sticky top-24">
         <div className="pb-3 border-b border-slate-100">
@@ -284,7 +299,9 @@ function IndicatorsTabContent({
           </p>
           <div className="mt-2 px-3 py-1.5 bg-slate-50 border border-slate-200/80 rounded-lg flex items-center justify-between text-[11px]">
             <span className="font-sans text-slate-600 font-medium">Standar Pengukuran IID</span>
-            <span className="font-sans font-semibold text-emerald-600">3 Selesai</span>
+            <span className="font-sans font-semibold text-emerald-600">
+              {verifiedCount} / {indicators.length} Selesai
+            </span>
           </div>
         </div>
 
@@ -304,7 +321,11 @@ function IndicatorsTabContent({
                 }`}
               >
                 <div className="flex items-start justify-between gap-1.5">
-                  <p className={`font-poppins text-xs font-bold leading-tight ${isActive ? "text-[#9B1C1C]" : "text-slate-800"}`}>
+                  <p
+                    className={`font-poppins text-xs font-bold leading-tight ${
+                      isActive ? "text-[#9B1C1C]" : "text-slate-800"
+                    }`}
+                  >
                     {item.title}
                   </p>
                   {isActive ? (
@@ -315,13 +336,19 @@ function IndicatorsTabContent({
                 </div>
 
                 <div className="flex items-center justify-between mt-1">
-                  <p className={`text-[10px] font-sans ${isActive ? "text-[#9B1C1C]" : isVerified ? "text-emerald-700" : "text-slate-400"}`}>
+                  <p
+                    className={`text-[10px] font-sans truncate max-w-[160px] ${
+                      isActive ? "text-[#9B1C1C]" : isVerified ? "text-emerald-700" : "text-slate-400"
+                    }`}
+                  >
                     {item.sub}
                   </p>
-                  <span className={`px-1.5 py-0.2 rounded text-[8px] font-poppins font-bold ${
-                    item.points > 0 ? "bg-[#FEF3C7] text-[#B45309]" : "bg-slate-100 text-slate-500"
-                  }`}>
-                    {item.points.toFixed(2)} pt
+                  <span
+                    className={`px-1.5 py-0.2 rounded text-[8px] font-poppins font-bold ${
+                      item.points > 0 ? "bg-[#FEF3C7] text-[#B45309]" : "bg-slate-100 text-slate-500"
+                    }`}
+                  >
+                    {item.points.toFixed(1)} pt
                   </span>
                 </div>
               </div>
@@ -338,15 +365,15 @@ function IndicatorsTabContent({
               PDF
             </span>
             <p className="font-poppins font-bold text-xs text-slate-800 truncate">
-              SK_Walikota_Makassar_Dinkes.pdf
+              Bukti_{currentIndicator?.indicator_id || "IND-01"}.pdf
             </p>
           </div>
           <span className="text-[10px] font-sans font-semibold bg-slate-100 text-slate-600 px-2 py-0.5 rounded">
-            Hal 1 dari 3
+            Halaman 1
           </span>
         </div>
 
-        <div className="flex-1 bg-white border border-slate-200/90 rounded-xl p-5 my-2 overflow-y-auto min-h-[580px] flex flex-col justify-between shadow-xs">
+        <div className="flex-1 bg-white border border-slate-200/90 rounded-xl p-5 my-2 overflow-y-auto min-h-[520px] flex flex-col justify-between shadow-xs">
           <div className="space-y-3.5">
             <div className="text-center pt-2">
               <h4 className="font-poppins font-extrabold text-[11px] tracking-wider text-slate-900 leading-tight">
@@ -361,186 +388,127 @@ function IndicatorsTabContent({
               </div>
             </div>
 
-            <div className="mt-4 p-2.5 border border-dashed border-red-500 bg-[#FEF2F2]/60 rounded-md text-center">
-              <p className="font-mono text-[9.5px] font-bold text-red-900 tracking-tight">
-                KEPUTUSAN WALIKOTA NOMOR: 054.1/123/BRIDA/2026
+            <div className="p-3 bg-red-50/50 border border-red-200/70 rounded-lg space-y-1">
+              <span className="text-[9px] font-mono text-[#9B1C1C] font-bold block">
+                [IDP EXTRACTED METADATA - {currentIndicator?.indicator_id}]
+              </span>
+              <p className="text-[11px] font-sans font-semibold text-slate-800">
+                {currentIndicator?.title}
               </p>
-            </div>
-
-            <div className="space-y-2 pt-2">
-              <div className="h-1.5 bg-slate-300 rounded w-full" />
-              <div className="h-1.5 bg-slate-200 rounded w-11/12" />
-              <div className="h-1.5 bg-slate-200 rounded w-4/5" />
-            </div>
-
-            <div className="pt-2">
-              <p className="font-poppins font-bold text-[9.5px] text-slate-800">
-                MEMUTUSKAN:
+              <p className="text-[10px] font-sans text-slate-600 mt-1">
+                <strong>Definisi:</strong> {currentIndicator?.definisi || "Sesuai petunjuk teknis IID."}
               </p>
-              <div className="space-y-2 mt-1.5">
-                <div className="h-1.5 bg-slate-300 rounded w-full" />
-                <div className="h-1.5 bg-slate-200 rounded w-11/12" />
-                <div className="h-1.5 bg-slate-200 rounded w-4/5" />
-              </div>
+              <p className="text-[10px] font-sans text-slate-500 mt-1">
+                <strong>Ketentuan Bukti:</strong> {currentIndicator?.sub}
+              </p>
             </div>
           </div>
 
-          <div className="flex flex-col items-center justify-center pt-6 border-t border-slate-100 space-y-2">
-            <div className="w-16 h-16 bg-slate-950 rounded-lg p-1.5 flex items-center justify-center shadow-xs">
-              <div className="grid grid-cols-3 gap-1 w-full h-full p-1 bg-white rounded-xs">
-                <div className="bg-black" />
-                <div className="bg-transparent" />
-                <div className="bg-black" />
-                <div className="bg-transparent" />
-                <div className="bg-black" />
-                <div className="bg-transparent" />
-                <div className="bg-black" />
-                <div className="bg-transparent" />
-                <div className="bg-black" />
-              </div>
-            </div>
+          <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#ECFDF5] border border-[#A7F3D0] rounded-md text-[#065F46] text-[10px] font-poppins font-semibold">
               <Check className="w-3 h-3 text-[#059669] stroke-[3]" />
-              <span>TTE BSrE Sah &amp; Valid</span>
+              <span>Pipeline IDP: TTE &amp; Naskah Valid</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* KOLOM 3: FORM EVALUASI PARAMETER */}
+      {/* KOLOM 3: FORM EVALUASI PARAMETER DINAMIS */}
       <div className="col-span-12 lg:col-span-5 bg-white rounded-2xl border border-slate-200 shadow-xs p-5 flex flex-col justify-between max-h-[calc(100vh-140px)] sticky top-24 overflow-y-auto">
         <div className="space-y-4">
           <div>
             <p className="font-poppins font-bold text-[10px] text-slate-400 uppercase tracking-wider">
-              EVALUASI PARAMETER (INDIKATOR {currentIndicator.id} DARI 20)
+              EVALUASI PARAMETER ({currentIndicator?.indicator_id} DARI {indicators.length})
             </p>
             <h3 className="font-poppins font-extrabold text-[15px] text-slate-900 mt-0.5 tracking-tight">
-              {currentIndicator.title} (Naskah SK &amp; Regulasi Formal)
+              {currentIndicator?.title}
             </h3>
           </div>
 
-          {/* Parameter 1 */}
-          <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs space-y-2.5">
-            <div className="flex items-start justify-between gap-2">
-              <h4 className="font-poppins font-bold text-xs text-slate-900 leading-snug">
-                Parameter 1: Verifikasi Keaslian &amp; Legalitas SK Penetapan
-              </h4>
-              <span className="shrink-0 px-2.5 py-0.5 rounded-full text-[9.5px] font-poppins font-bold bg-[#FEF3C7] text-[#B45309] border border-[#FDE68A] flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#D97706]" />
-                <span>AI: Perlu Revisi (68%)</span>
-              </span>
-            </div>
-            <div className="p-2.5 bg-slate-50 border border-slate-100 rounded-lg text-[10.5px] text-slate-600 font-sans leading-relaxed">
-              <p className="font-semibold text-slate-800">
-                AI Catatan: Naskah dinas terunggah lengkap, namun nomor registrasi tidak sinkron di database SIGAP.
-              </p>
-            </div>
-            <div className="flex items-center justify-between pt-1">
-              <span className="font-sans text-[11px] font-medium text-slate-600">Keputusan Verifikator:</span>
-              <div className="inline-flex rounded-lg border border-slate-200 p-0.5 bg-white gap-1">
-                {(["lolos", "revisi", "tolak"] as const).map((opt) => (
-                  <button
-                    key={opt}
-                    type="button"
-                    onClick={() => setDecisions({ ...decisions, 1: opt })}
-                    className={`px-4 py-1 text-[11px] font-poppins capitalize rounded-md transition-all ${
-                      decisions[1] === opt
-                        ? opt === "lolos"
-                          ? "bg-[#059669] text-white font-bold"
-                          : opt === "revisi"
-                          ? "bg-[#F59E0B] text-white font-bold"
-                          : "bg-[#9B1C1C] text-white font-bold"
-                        : "text-slate-600 hover:text-slate-900"
-                    }`}
-                  >
-                    {opt}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
+          {/* List Parameter Dinamis */}
+          {currentIndicator?.parameters && currentIndicator.parameters.length > 0 ? (
+            currentIndicator.parameters.map((param, pIdx) => {
+              const currentDecision =
+                decisions[param.id] ||
+                (param.human_decision?.keputusan
+                  ? (param.human_decision.keputusan.toLowerCase() as any)
+                  : undefined);
 
-          {/* Parameter 2 */}
-          <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs space-y-2.5">
-            <div className="flex items-start justify-between gap-2">
-              <h4 className="font-poppins font-bold text-xs text-slate-900 leading-snug">
-                Parameter 2: Kesesuaian Diktum Penetapan dengan Ranperda
-              </h4>
-              <span className="shrink-0 px-2.5 py-0.5 rounded-full text-[9.5px] font-poppins font-bold bg-[#FEE2E2] text-[#B91C1C] border border-[#FECACA] flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#DC2626]" />
-                <span>AI: Tidak Lolos (42%)</span>
-              </span>
-            </div>
-            <div className="p-2.5 bg-slate-50 border border-slate-100 rounded-lg text-[10.5px] text-slate-600 font-sans leading-relaxed">
-              <p className="font-semibold text-slate-800">
-                AI Catatan: Klausul bab menimbang tidak memuat rujukan Perwali Makassar No. 20 Tahun 2024.
-              </p>
-            </div>
-            <div className="flex items-center justify-between pt-1">
-              <span className="font-sans text-[11px] font-medium text-slate-600">Keputusan Verifikator:</span>
-              <div className="inline-flex rounded-lg border border-slate-200 p-0.5 bg-white gap-1">
-                {(["lolos", "revisi", "tolak"] as const).map((opt) => (
-                  <button
-                    key={opt}
-                    type="button"
-                    onClick={() => setDecisions({ ...decisions, 2: opt })}
-                    className={`px-4 py-1 text-[11px] font-poppins capitalize rounded-md transition-all ${
-                      decisions[2] === opt
-                        ? opt === "lolos"
-                          ? "bg-[#059669] text-white font-bold"
-                          : opt === "revisi"
-                          ? "bg-[#F59E0B] text-white font-bold"
-                          : "bg-[#9B1C1C] text-white font-bold"
-                        : "text-slate-600 hover:text-slate-900"
-                    }`}
-                  >
-                    {opt}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
+              const aiRec = param.ai_assessment?.rekomendasi || "PERLU_REVISI";
+              const confPercent = Math.round((param.ai_assessment?.confidence_score || 0.7) * 100);
 
-          {/* Parameter 3 */}
-          <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs space-y-2.5">
-            <div className="flex items-start justify-between gap-2">
-              <h4 className="font-poppins font-bold text-xs text-slate-900 leading-snug">
-                Parameter 3: Keabsahan Tanda Tangan &amp; Stempel Digital Resmi
-              </h4>
-              <span className="shrink-0 px-2.5 py-0.5 rounded-full text-[9.5px] font-poppins font-bold bg-[#ECFDF5] text-[#065F46] border border-[#A7F3D0] flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#059669]" />
-                <span>AI: Lolos (94%)</span>
-              </span>
+              return (
+                <div
+                  key={param.id}
+                  className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs space-y-2.5"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <h4 className="font-poppins font-bold text-xs text-slate-900 leading-snug">
+                      Parameter {pIdx + 1}: {param.nama}
+                    </h4>
+                    <span
+                      className={`shrink-0 px-2.5 py-0.5 rounded-full text-[9.5px] font-poppins font-bold flex items-center gap-1 border ${
+                        aiRec === "LOLOS"
+                          ? "bg-[#ECFDF5] text-[#065F46] border-[#A7F3D0]"
+                          : aiRec === "PERLU_REVISI"
+                          ? "bg-[#FEF3C7] text-[#B45309] border-[#FDE68A]"
+                          : "bg-[#FEE2E2] text-[#B91C1C] border-[#FECACA]"
+                      }`}
+                    >
+                      <span
+                        className={`w-1.5 h-1.5 rounded-full ${
+                          aiRec === "LOLOS"
+                            ? "bg-[#059669]"
+                            : aiRec === "PERLU_REVISI"
+                            ? "bg-[#D97706]"
+                            : "bg-[#DC2626]"
+                        }`}
+                      />
+                      <span>
+                        AI: {aiRec} ({confPercent}%)
+                      </span>
+                    </span>
+                  </div>
+
+                  <div className="p-2.5 bg-slate-50 border border-slate-100 rounded-lg text-[10.5px] text-slate-600 font-sans leading-relaxed">
+                    <p className="font-semibold text-slate-800">
+                      AI Catatan: {param.ai_assessment?.ai_catatan || "Terpenuhi sesuai bukti dukung."}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-1">
+                    <span className="font-sans text-[11px] font-medium text-slate-600">
+                      Keputusan Verifikator:
+                    </span>
+                    <div className="inline-flex rounded-lg border border-slate-200 p-0.5 bg-white gap-1">
+                      {(["lolos", "revisi", "tolak"] as const).map((opt) => (
+                        <button
+                          key={opt}
+                          type="button"
+                          onClick={() => handleSelectDecision(param.id, opt)}
+                          className={`px-3 py-1 text-[11px] font-poppins capitalize rounded-md transition-all ${
+                            currentDecision === opt
+                              ? opt === "lolos"
+                                ? "bg-[#059669] text-white font-bold"
+                                : opt === "revisi"
+                                ? "bg-[#F59E0B] text-white font-bold"
+                                : "bg-[#9B1C1C] text-white font-bold"
+                              : "text-slate-600 hover:text-slate-900"
+                          }`}
+                        >
+                          {opt}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl text-center text-xs text-slate-500">
+              Indikator ini tidak memiliki parameter turunan bertingkat.
             </div>
-            <div className="p-2.5 bg-slate-50 border border-slate-100 rounded-lg text-[10.5px] text-slate-600 font-sans leading-relaxed">
-              <p className="font-semibold text-slate-800">
-                AI Catatan: Sertifikat digital terdeteksi valid, diterbitkan resmi oleh Balai Sertifikasi Elektronik (BSrE).
-              </p>
-            </div>
-            <div className="flex items-center justify-between pt-1">
-              <span className="font-sans text-[11px] font-medium text-slate-600">Keputusan Verifikator:</span>
-              <div className="inline-flex rounded-lg border border-slate-200 p-0.5 bg-white gap-1">
-                {(["lolos", "revisi", "tolak"] as const).map((opt) => (
-                  <button
-                    key={opt}
-                    type="button"
-                    onClick={() => setDecisions({ ...decisions, 3: opt })}
-                    className={`px-4 py-1 text-[11px] font-poppins capitalize rounded-md transition-all ${
-                      decisions[3] === opt
-                        ? opt === "lolos"
-                          ? "bg-[#059669] text-white font-bold"
-                          : opt === "revisi"
-                          ? "bg-[#F59E0B] text-white font-bold"
-                          : "bg-[#9B1C1C] text-white font-bold"
-                        : "text-slate-600 hover:text-slate-900"
-                    }`}
-                  >
-                    {opt}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
+          )}
         </div>
 
         {/* Footer Simpan */}
@@ -549,15 +517,19 @@ function IndicatorsTabContent({
             type="text"
             value={reviewerNote}
             onChange={(e) => setReviewerNote(e.target.value)}
-            placeholder="Catatan tambahan verifikator untuk Indikator ini (opsional)..."
+            placeholder="Catatan verifikator untuk indikator ini..."
             className="flex-1 px-3.5 py-2 bg-white border border-slate-200 rounded-lg text-xs font-sans text-slate-700 placeholder-slate-400 focus:outline-none focus:border-[#9B1C1C] transition-colors"
           />
           <button
             type="button"
+            disabled={isSaving}
             onClick={handleSaveAndNext}
-            className="px-5 py-2 bg-[#9B1C1C] hover:bg-[#831818] active:bg-[#6c1414] text-white text-xs font-poppins font-bold rounded-lg shrink-0 shadow-sm transition-all active:scale-95 whitespace-nowrap"
+            className={`px-5 py-2 bg-[#9B1C1C] hover:bg-[#831818] active:bg-[#6c1414] text-white text-xs font-poppins font-bold rounded-lg shrink-0 shadow-sm transition-all active:scale-95 whitespace-nowrap flex items-center gap-1.5 ${
+              isSaving ? "opacity-75 cursor-not-allowed" : ""
+            }`}
           >
-            Simpan &amp; Lanjut Indikator
+            {isSaving && <Loader2 className="w-3 h-3 animate-spin" />}
+            <span>Simpan &amp; Lanjut Indikator</span>
           </button>
         </div>
       </div>
@@ -570,31 +542,49 @@ function IndicatorsTabContent({
 export default function Verification({
   onBack,
   documentId = "INV-2026-001",
-  documentTitle = "PLATONIK: Program Literasi Terpadu, Optimalisasi Kognitif, dan Integrasi Karakter",
+  documentTitle = "PLATONIK: Literasi Terpadu & Integrasi Karakter",
   opdName = "Dinas Pendidikan Kota Makassar",
 }: VerificationProps) {
   const [activeTab, setActiveTab] = useState<"profil" | "indikator">("profil");
-  const [indicators, setIndicators] = useState<IndicatorItem[]>(initialIndicators);
+  const [innovationData, setInnovationData] = useState<InnovationDetailResponse | null>(null);
+  const [indicators, setIndicators] = useState<IndicatorDetailItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    setIsLoading(true);
+    fetchInnovationDetail(documentId)
+      .then((data) => {
+        setInnovationData(data);
+        if (data.indicators && data.indicators.length > 0) {
+          setIndicators(data.indicators);
+        }
+      })
+      .catch((err) => {
+        console.warn("Gagal memuat detail inovasi dari API:", err);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  }, [documentId]);
 
   const verifiedCount = indicators.filter((i) => i.status === "verified").length;
+  const currentTitle = innovationData?.title || documentTitle;
+  const currentOpd = innovationData?.opd || opdName;
+  const currentPoints = innovationData?.temporaryPoints || 84.0;
 
   return (
-    <div className="min-h-screen w-full bg-[#F4F5F8] text-slate-800 font-sans antialiased flex flex-col">
-    
-      {/* 1. TOP NAVBAR HEADER */}
-      <header className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between sticky top-0 z-30 shadow-xs">
-        <div className="flex items-center gap-3.5">
+    <div className="min-h-screen w-full flex flex-col bg-[#F8FAFC] text-slate-800 font-sans antialiased">
+      {/* 1. TOP BAR */}
+      <header className="h-16 bg-white border-b border-slate-200/90 px-6 flex items-center justify-between sticky top-0 z-40">
+        <div className="flex items-center gap-4">
           <button
-            type="button"
             onClick={onBack}
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#F8FAFC] hover:bg-slate-100 border border-slate-200 text-slate-700 rounded-lg text-xs font-poppins font-semibold transition-all active:scale-95"
+            className="p-2 -ml-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors flex items-center gap-1.5 text-xs font-poppins font-semibold"
           >
-            <ArrowLeft className="w-3.5 h-3.5" />
+            <ArrowLeft className="w-4 h-4" />
             <span>Kembali</span>
           </button>
-
           <div className="h-5 w-px bg-slate-200" />
-
           <div>
             <h1 className="font-poppins font-bold text-sm text-slate-900 leading-tight">
               Review Evaluasi Usulan Inovasi
@@ -608,7 +598,7 @@ export default function Verification({
         <div className="flex items-center gap-3">
           <div className="px-3 py-1 bg-[#FFFBEB] border border-[#FDE68A] rounded-lg text-center">
             <span className="block font-poppins font-bold text-xs text-[#B45309] leading-tight">
-              84.00 Poin
+              {currentPoints.toFixed(2)} Poin
             </span>
             <span className="block font-sans font-bold text-[7.5px] text-[#92400E] uppercase tracking-wider">
               Estimasi Sementara
@@ -618,13 +608,13 @@ export default function Verification({
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-[#EFF6FF] border border-[#BFDBFE] rounded-lg">
             <span className="w-2 h-2 rounded-full bg-[#2563EB]" />
             <span className="font-sans text-[11px] font-semibold text-[#1D4ED8]">
-              Progres: {verifiedCount} / 20 Selesai
+              Progres: {verifiedCount} / {indicators.length || 20} Selesai
             </span>
           </div>
 
           <button
             type="button"
-            onClick={() => alert("Seluruh telaah berhasil dikirim ke pimpinan BRIDA!")}
+            onClick={() => alert("Seluruh telaah berhasil diverifikasi!")}
             className="px-5 py-2 bg-[#9B1C1C] hover:bg-[#831818] active:bg-[#6c1414] text-white rounded-lg text-xs font-poppins font-bold shadow-sm transition-all active:scale-95"
           >
             Kirim Telaah
@@ -641,15 +631,14 @@ export default function Verification({
               IMA 2026
             </span>
             <span className="px-2.5 py-0.5 bg-slate-50 border border-slate-200 text-slate-600 font-sans font-medium text-[9px] rounded">
-              Kategori: Tata Kelola &amp; Layanan
+              {innovationData?.type || "Inovasi Pelayanan Publik"}
             </span>
           </div>
           <h2 className="font-poppins font-bold text-lg text-slate-900 leading-snug">
-            {documentTitle}
+            {currentTitle}
           </h2>
           <p className="font-sans text-xs text-slate-500 mt-1">
-            Inisiator: <strong className="text-slate-800 font-semibold">{opdName}</strong> • PIC:{" "}
-            <strong className="text-slate-800 font-semibold">Dr. Sarwinah S.Pd., M.Pd</strong> (08124486746) • ID:{" "}
+            Inisiator: <strong className="text-slate-800 font-semibold">{currentOpd}</strong> • ID:{" "}
             <span className="font-mono text-slate-700 font-semibold">{documentId}</span>
           </p>
         </section>
@@ -681,10 +670,19 @@ export default function Verification({
         </section>
 
         {/* Render Tab Bersyarat */}
-        {activeTab === "profil" ? (
-          <ProfileTabContent onGoToIndicators={() => setActiveTab("indikator")} />
+        {isLoading ? (
+          <div className="flex items-center justify-center p-12 bg-white rounded-2xl border border-slate-200 gap-3 text-slate-500">
+            <Loader2 className="w-5 h-5 animate-spin text-[#9B1C1C]" />
+            <span className="text-sm font-poppins">Memuat data indikator dari backend...</span>
+          </div>
+        ) : activeTab === "profil" ? (
+          <ProfileTabContent
+            innovation={innovationData}
+            onGoToIndicators={() => setActiveTab("indikator")}
+          />
         ) : (
           <IndicatorsTabContent
+            documentId={documentId}
             indicators={indicators}
             onUpdateIndicators={setIndicators}
           />

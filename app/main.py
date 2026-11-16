@@ -1,7 +1,9 @@
 import shutil
+import uuid
 from pathlib import Path
 from typing import Optional
 from fastapi import FastAPI, File, UploadFile, Depends, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
@@ -11,12 +13,31 @@ from app.database.connection import get_db, create_tables, DB_DIALECT
 from app.database.models import Document, DocumentExtraction, EvaluationRun
 from app.pipeline.runner import PipelineRunner
 from app.evaluation.benchmark import BenchmarkSuite
+from app.api import indicators, innovations
 
 app = FastAPI(
     title="Sturdy IDP Engine",
     description="Zero-Cost High-Accuracy IDP System for Official Indonesian Documents",
     version="1.0.0"
 )
+
+# CORS configuration for development & frontend integration
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Register API routers
+app.include_router(indicators.router, prefix="/api", tags=["Indicators"])
+app.include_router(innovations.router, prefix="/api", tags=["Innovations"])
 
 # Initialize database tables on startup
 @app.on_event("startup")
@@ -88,7 +109,9 @@ async def process_document(
     if not file.filename.lower().endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Only PDF files are supported.")
 
-    temp_path = settings.TEMP_DIR / file.filename
+    settings.TEMP_DIR.mkdir(parents=True, exist_ok=True)
+    safe_filename = f"{uuid.uuid4().hex}_{Path(file.filename).name}"
+    temp_path = settings.TEMP_DIR / safe_filename
     try:
         with open(temp_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
