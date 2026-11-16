@@ -144,6 +144,35 @@ export async function uploadAndProcessDocument(file: File): Promise<ProcessDocum
   return resp.json();
 }
 
+export interface ExtractedDocumentItem {
+  id: number;
+  original_filename: string;
+  page_count: number;
+  is_scanned: boolean;
+  status: string;
+  needs_manual_review: boolean;
+  created_at?: string;
+  extractions: Array<{
+    nomor_surat?: string;
+    instansi?: string;
+    perihal?: string;
+    tanggal_surat?: string;
+    nama_pejabat?: string;
+    jabatan_pejabat?: string;
+    nip_pejabat?: string;
+    verification_url?: string;
+    confidence_score: number;
+  }>;
+}
+
+export async function fetchDocuments(): Promise<ExtractedDocumentItem[]> {
+  const resp = await fetch(`${API_BASE}/documents`);
+  if (!resp.ok) {
+    throw new Error(`Gagal memuat berkas dokumen: ${resp.statusText}`);
+  }
+  return resp.json();
+}
+
 export async function fetchStats() {
   const resp = await fetch(`${API_BASE}/stats`);
   if (!resp.ok) {
